@@ -5,6 +5,8 @@ Ansible/
 Thumbs.db
 
 # User-specific files
+*.zip
+*.pbf
 *.suo
 *.user
 *.userosscache
