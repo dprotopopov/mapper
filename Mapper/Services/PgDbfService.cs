@@ -109,7 +109,7 @@ namespace Mapper.Services
                                     else
                                     {
                                         var values = columns.Select(x => x.ValueAsText(reader)).ToList();
-                                        writer.WriteLine($"{string.Join("\t", values)}");
+                                        writer.WriteLine(string.Join("\t", values));
                                     }
 
                                 writer?.Dispose();
@@ -190,7 +190,7 @@ namespace Mapper.Services
                                     else
                                     {
                                         var values = columns.Select(x => x.ValueAsText(reader)).ToList();
-                                        writer.WriteLine($"{string.Join("\t", values)}");
+                                        writer.WriteLine(string.Join("\t", values));
                                     }
 
                                 writer?.Dispose();

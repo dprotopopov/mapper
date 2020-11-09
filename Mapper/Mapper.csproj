@@ -7,11 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Sql\OsmCreateTables.sql" />
-    <None Remove="Sql\Osm\CreateIndeces.sql" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="Sql\Osm\CreateIndeces.sql" />
     <EmbeddedResource Include="Sql\Osm\CreateTables.sql" />
   </ItemGroup>
@@ -29,9 +24,6 @@
     <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Resource Include="Sql\OsmCreateTables.sql" />
-  </ItemGroup>
 
 
 </Project>

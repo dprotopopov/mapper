@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using NDbfReader;
 
 namespace Mapper.Extensions
@@ -43,36 +44,53 @@ namespace Mapper.Extensions
                 : string.Empty;
         }
 
-        public static string TextEscape(this string s, bool all = false)
+        public static string TextEscape(this string s, int doubleQuotes = 0)
         {
             s = s.Replace("\\", @"\\");
 
-            if (all)
-                s = s.Replace("\"", @"\""");
+            switch (doubleQuotes)
+            {
+                case 1:
+                    s = s.Replace("\\", @"\\").Replace("\"", @"\""");
+                    break;
+                case 2:
+                    s = s.Replace("\\", @"\\\\").Replace("\"", @"\\\""");
+                    break;
+                case 4:
+                    s = s.Replace("\\", @"\\\\\\").Replace("\"", @"\\\\""");
+                    break;
+                default:
+                    s = s.Replace("\\", @"\\");
+                    break;
+            }
 
-            return s.Replace("\'", @"\'")
+            s = s.Replace("\'", @"\'")
                     .Replace("\r", @"\r")
                     .Replace("\n", @"\n")
                     .Replace("\t", @"\t")
+                    .Replace("\a", @"\a")
                     .Replace("\b", @"\b")
                     .Replace("\f", @"\f")
                     .Replace("\v", @"\v")
+                    .Replace("\0", @"\0")
                 ;
+
+            return s;
         }
 
         public static string ValueAsText(this double? value)
         {
-            return value?.ToString("G", CultureInfo.InvariantCulture) ?? Null;
+            return value?.ToString("G", CultureInfo.InvariantCulture) ?? string.Empty;
         }
 
         public static string ValueAsText(this DateTime? value)
         {
-            return value != null ? $"'{value.Value.ToString("u", CultureInfo.InvariantCulture)}'" : Null;
+            return value != null ? $"{value.Value.ToString("u", CultureInfo.InvariantCulture)}" : string.Empty;
         }
 
         public static string ValueAsText(this string value)
         {
-            return value != null ? $"'{value.TextEscape()}'" : Null;
+            return value != null ? $"{value.TextEscape()}" : string.Empty;
         }
     }
 }

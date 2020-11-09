@@ -16,7 +16,55 @@ namespace Mapper.Services
 {
     public class OsmService : IManagerService
     {
+        public enum ElementType
+        {
+            None,
+            Node,
+            Way,
+            Relation
+        }
+
         private readonly ProgressHub _progressHub;
+
+        private readonly List<string> nodeKeys = new List<string>
+        {
+            "Id",
+            "Version",
+            "Latitude",
+            "Longitude",
+            "ChangeSetId",
+            "TimeStamp",
+            "UserId",
+            "UserName",
+            "Visible",
+            "Tags"
+        };
+
+        private readonly List<string> relationKeys = new List<string>
+        {
+            "Id",
+            "Version",
+            "ChangeSetId",
+            "TimeStamp",
+            "UserId",
+            "UserName",
+            "Visible",
+            "Tags",
+            "Members"
+        };
+
+        private readonly List<string> wayKeys = new List<string>
+        {
+            "Id",
+            "Version",
+            "ChangeSetId",
+            "TimeStamp",
+            "UserId",
+            "UserName",
+            "Visible",
+            "Tags",
+            "Nodes"
+        };
 
         public OsmService(ProgressHub progressHub)
         {
@@ -36,90 +84,87 @@ namespace Mapper.Services
             long count = 0;
             using (var source = new PBFOsmStreamSource(uploadStream))
             {
+                TextWriter writer = null;
+                var lastType = ElementType.None;
+
                 foreach (var element in source)
                 {
                     switch (element)
                     {
                         case Node node:
-                            var nodeDictionary = new Dictionary<string, string>
+                            if (lastType != ElementType.Node)
                             {
-                                {"Id", node.Id.ToString()},
-                                {"Version", node.Version.ToString()},
-                                {"Latitude", node.Latitude.ValueAsText()},
-                                {"Longitude", node.Latitude.ValueAsText()},
-                                {"ChangeSetId", node.ChangeSetId.ToString()},
-                                {"TimeStamp", node.TimeStamp.ValueAsText()},
-                                {"UserId", node.UserId.ToString()},
-                                {"UserName", node.UserName.ValueAsText()},
-                                {"Visible", node.Visible.ToString()},
-                                {
-                                    "Tags",
-                                    $"'{string.Join(", ", node.Tags.Select(t => $"\"{t.Key.TextEscape(true)}\" => \"{t.Value.TextEscape(true)}\""))}'"
-                                }
+                                lastType = ElementType.Node;
+                                writer?.Dispose();
+                                writer = connection.BeginTextImport(
+                                    $"COPY Node ({string.Join(", ", nodeKeys)}) FROM STDIN WITH NULL AS '';");
+                            }
+
+                            var nodeValues = new List<string>
+                            {
+                                node.Id.ToString(),
+                                node.Version.ToString(),
+                                node.Latitude.ValueAsText(),
+                                node.Latitude.ValueAsText(),
+                                node.ChangeSetId.ToString(),
+                                node.TimeStamp.ValueAsText(),
+                                node.UserId.ToString(),
+                                node.UserName.ValueAsText(),
+                                node.Visible.ToString(),
+                                $"{string.Join(", ", node.Tags.Select(t => $"\"{t.Key.TextEscape(2)}\" => \"{t.Value.TextEscape(2)}\""))}"
                             };
 
-                            using (var command = new NpgsqlCommand(
-                                $"INSERT INTO Node ({string.Join(", ", nodeDictionary.Keys)}) VALUES ({string.Join(", ", nodeDictionary.Values)})",
-                                connection))
-                            {
-                                command.ExecuteNonQuery();
-                            }
+                            writer.WriteLine(string.Join("\t", nodeValues));
 
                             break;
                         case Way way:
-                            var wayDictionary = new Dictionary<string, string>
+                            if (lastType != ElementType.Way)
                             {
-                                {"Id", way.Id.ToString()},
-                                {"Version", way.Version.ToString()},
-                                {"ChangeSetId", way.ChangeSetId.ToString()},
-                                {"TimeStamp", way.TimeStamp.ValueAsText()},
-                                {"UserId", way.UserId.ToString()},
-                                {"UserName", way.UserName.ValueAsText()},
-                                {"Visible", way.Visible.ToString()},
-                                {
-                                    "Tags",
-                                    $"'{string.Join(", ", way.Tags.Select(t => $"\"{t.Key.TextEscape(true)}\" => \"{t.Value.TextEscape(true)}\""))}'"
-                                },
-                                {
-                                    "Nodes",
-                                    $"{{{string.Join(",", way.Nodes.Select(t => $"{t.ToString()}"))}}}"
-                                }
+                                lastType = ElementType.Way;
+                                writer?.Dispose();
+                                writer = connection.BeginTextImport(
+                                    $"COPY Way ({string.Join(", ", wayKeys)}) FROM STDIN WITH NULL AS '';");
+                            }
+
+                            var wayValues = new List<string>
+                            {
+                                way.Id.ToString(),
+                                way.Version.ToString(),
+                                way.ChangeSetId.ToString(),
+                                way.TimeStamp.ValueAsText(),
+                                way.UserId.ToString(),
+                                way.UserName.ValueAsText(),
+                                way.Visible.ToString(),
+                                $"{string.Join(", ", way.Tags.Select(t => $"\"{t.Key.TextEscape(2)}\" => \"{t.Value.TextEscape(2)}\""))}",
+                                $"{{{string.Join(",", way.Nodes.Select(t => $"{t.ToString()}"))}}}"
                             };
 
-                            using (var command = new NpgsqlCommand(
-                                $"INSERT INTO Way ({string.Join(", ", wayDictionary.Keys)}) VALUES ({string.Join(", ", wayDictionary.Values)})",
-                                connection))
-                            {
-                                command.ExecuteNonQuery();
-                            }
+                            writer.WriteLine(string.Join("\t", wayValues));
 
                             break;
                         case Relation relation:
-                            var relationDictionary = new Dictionary<string, string>
+                            if (lastType != ElementType.Relation)
                             {
-                                {"Id", relation.Id.ToString()},
-                                {"Version", relation.Version.ToString()},
-                                {"ChangeSetId", relation.ChangeSetId.ToString()},
-                                {"TimeStamp", relation.TimeStamp.ValueAsText()},
-                                {"UserId", relation.UserId.ToString()},
-                                {"UserName", relation.UserName.ValueAsText()},
-                                {"Visible", relation.Visible.ToString()},
-                                {
-                                    "Tags",
-                                    $"'{string.Join(", ", relation.Tags.Select(t => $"\"{t.Key.TextEscape(true)}\" => \"{t.Value.TextEscape(true)}\""))}'"
-                                },
-                                {
-                                    "Members",
-                                    $"{{{string.Join(",", relation.Members.Select(t => $"({((int) t.Type).ToString()},{t.Id.ToString()},\"{t.Role.TextEscape(true)}\")"))}}}"
-                                }
+                                lastType = ElementType.Relation;
+                                writer?.Dispose();
+                                writer = connection.BeginTextImport(
+                                    $"COPY Relation ({string.Join(", ", relationKeys)}) FROM STDIN WITH NULL AS '';");
+                            }
+
+                            var relationValues = new List<string>
+                            {
+                                relation.Id.ToString(),
+                                relation.Version.ToString(),
+                                relation.ChangeSetId.ToString(),
+                                relation.TimeStamp.ValueAsText(),
+                                relation.UserId.ToString(),
+                                relation.UserName.ValueAsText(),
+                                relation.Visible.ToString(),
+                                $"{string.Join(", ", relation.Tags.Select(t => $"\"{t.Key.TextEscape(2)}\" => \"{t.Value.TextEscape(2)}\""))}",
+                                $"{{{string.Join(",", relation.Members.Select(t => $"\\\"({t.Id.ToString()},\\\\\\\"{t.Role.TextEscape(4)}\\\\\\\",{((int) t.Type).ToString()})\\\""))}}}"
                             };
 
-                            using (var command = new NpgsqlCommand(
-                                $"INSERT INTO Relation ({string.Join(", ", relationDictionary.Keys)}) VALUES ({string.Join(", ", relationDictionary.Values)})",
-                                connection))
-                            {
-                                command.ExecuteNonQuery();
-                            }
+                            writer.WriteLine(string.Join("\t", relationValues));
 
                             break;
                         default:
@@ -129,6 +174,8 @@ namespace Mapper.Services
                     if (count++ % 1000 == 0)
                         await _progressHub.Progress(100f * uploadStream.Position / uploadStream.Length, session);
                 }
+
+                writer?.Dispose();
             }
 
             using (var stream = Assembly.GetExecutingAssembly()

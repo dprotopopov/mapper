@@ -32,8 +32,8 @@ CREATE TABLE Way (
 
 CREATE TYPE RelationMember AS (
 	Id BIGINT, 
-    Type INTEGER,
-    Role VARCHAR(255)
+    Role VARCHAR(255),
+    Type INTEGER
 );
 
 CREATE TABLE Relation (
