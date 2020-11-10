@@ -25,15 +25,15 @@ namespace Mapper.Controllers
             var actionName = ControllerContext.RouteData.Values["action"].ToString();
             var controllerName = ControllerContext.RouteData.Values["controller"].ToString();
             ViewBag.UploadLink = $"/{controllerName}/{actionName}";
-            var info = GetInstallInfo();
+            var info = GetInstallFormInfo();
             ViewBag.Title = info.Title;
             ViewBag.Label = info.Label;
             return View("~/Views/_UploadFromFile.cshtml");
         }
 
         protected abstract string GetConnectionString();
-        protected abstract ViewBagInfo GetInstallInfo();
-        protected abstract ViewBagInfo GetIUpdateInfo();
+        protected abstract UploadFormInfo GetInstallFormInfo();
+        protected abstract UploadFormInfo GetUpdateFormInfo();
 
         [HttpPost]
         [DisableRequestSizeLimit]
@@ -57,7 +57,7 @@ namespace Mapper.Controllers
             var actionName = ControllerContext.RouteData.Values["action"].ToString();
             var controllerName = ControllerContext.RouteData.Values["controller"].ToString();
             ViewBag.UploadLink = $"/{controllerName}/{actionName}";
-            var info = GetIUpdateInfo();
+            var info = GetUpdateFormInfo();
             ViewBag.Title = info.Title;
             ViewBag.Label = info.Label;
 
@@ -86,7 +86,7 @@ namespace Mapper.Controllers
             var actionName = ControllerContext.RouteData.Values["action"].ToString();
             var controllerName = ControllerContext.RouteData.Values["controller"].ToString();
             ViewBag.UploadLink = $"/{controllerName}/{actionName}";
-            var info = GetInstallInfo();
+            var info = GetInstallFormInfo();
             ViewBag.Title = info.Title;
             ViewBag.Label = info.Label;
             return View("~/Views/_UploadFromUrl.cshtml");
@@ -100,11 +100,11 @@ namespace Mapper.Controllers
                 FileAccess.ReadWrite, FileShare.None,
                 4096, FileOptions.DeleteOnClose))
             {
-                using (WebClient webClient = new WebClient())
+                using (var webClient = new WebClient())
                 {
-                    using (Stream streamFile = webClient.OpenRead(url))
+                    using (var streamFile = webClient.OpenRead(url))
                     {
-                        streamFile.CopyTo(tempFileStream);
+                        await streamFile.CopyToAsync(tempFileStream);
                     }
                 }
 
@@ -126,7 +126,7 @@ namespace Mapper.Controllers
             var actionName = ControllerContext.RouteData.Values["action"].ToString();
             var controllerName = ControllerContext.RouteData.Values["controller"].ToString();
             ViewBag.UploadLink = $"/{controllerName}/{actionName}";
-            var info = GetIUpdateInfo();
+            var info = GetUpdateFormInfo();
             ViewBag.Title = info.Title;
             ViewBag.Label = info.Label;
 
@@ -141,11 +141,11 @@ namespace Mapper.Controllers
                 FileAccess.ReadWrite, FileShare.None,
                 4096, FileOptions.DeleteOnClose))
             {
-                using (WebClient webClient = new WebClient())
+                using (var webClient = new WebClient())
                 {
-                    using (Stream streamFile = webClient.OpenRead(url))
+                    using (var streamFile = webClient.OpenRead(url))
                     {
-                        streamFile.CopyTo(tempFileStream);
+                        await streamFile.CopyToAsync(tempFileStream);
                     }
                 }
 
@@ -162,7 +162,7 @@ namespace Mapper.Controllers
             return Content(url);
         }
 
-        public class ViewBagInfo
+        public class UploadFormInfo
         {
             public string Title { get; set; }
             public string Label { get; set; }

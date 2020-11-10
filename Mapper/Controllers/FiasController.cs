@@ -26,18 +26,18 @@ namespace Mapper.Controllers
             return Configuration.GetConnectionString("FiasConnection");
         }
 
-        protected override ViewBagInfo GetInstallInfo()
+        protected override UploadFormInfo GetInstallFormInfo()
         {
-            return new ViewBagInfo
+            return new UploadFormInfo
             {
                 Title = "Установка ФИАС",
                 Label = "Полная БД ФИАС (zip-архив dbf-файлов)"
             };
         }
 
-        protected override ViewBagInfo GetIUpdateInfo()
+        protected override UploadFormInfo GetUpdateFormInfo()
         {
-            return new ViewBagInfo
+            return new UploadFormInfo
             {
                 Title = "Установка ФИАС",
                 Label = "Обновление БД ФИАС (zip-архив dbf-файлов)"

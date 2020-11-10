@@ -14,18 +14,18 @@ namespace Mapper.Controllers
         public OsmController(IConfiguration configuration, OsmUploadService uploadService) : base(configuration, uploadService)
         {
         }
-        protected override ViewBagInfo GetInstallInfo()
+        protected override UploadFormInfo GetInstallFormInfo()
         {
-            return new ViewBagInfo()
+            return new UploadFormInfo()
             {
                 Title = "Установка OSM",
                 Label = "Полная БД OSM"
             };
         }
 
-        protected override ViewBagInfo GetIUpdateInfo()
+        protected override UploadFormInfo GetUpdateFormInfo()
         {
-            return new ViewBagInfo()
+            return new UploadFormInfo()
             {
                 Title = "Установка OSM",
                 Label = "Обновление БД OSM"
