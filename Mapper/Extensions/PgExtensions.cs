@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 using NDbfReader;
+using Npgsql;
 
 namespace Mapper.Extensions
 {
@@ -114,6 +115,11 @@ namespace Mapper.Extensions
         public static string ValueAsText(this string value)
         {
             return value != null ? $"{value.TextEscape()}" : string.Empty;
+        }
+
+        public static string SafeGetString(this NpgsqlDataReader reader, int ordinal)
+        {
+            return reader.IsDBNull(ordinal) ? null : reader.GetString(ordinal);
         }
     }
 }

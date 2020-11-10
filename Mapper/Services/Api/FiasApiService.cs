@@ -11,7 +11,6 @@ namespace Mapper.Services.Api
 {
     public class FiasApiService
     {
-        private readonly IConfiguration Configuration;
         private readonly string _childrenAddrobSql;
         private readonly string _childrenHouseSql;
         private readonly string _childrenRoomSql;
@@ -28,6 +27,7 @@ namespace Mapper.Services.Api
         private readonly string _rootHouseSql;
         private readonly string _rootRoomSql;
         private readonly string _rootSteadSql;
+        private readonly IConfiguration Configuration;
 
         public FiasApiService(IConfiguration configuration)
         {
@@ -90,8 +90,8 @@ namespace Mapper.Services.Api
                     _listAddrob.Select(x =>
                         $"SELECT aoguid,offname,formalname,shortname,socrbase.socrname FROM {x} JOIN socrbase ON {x}.shortname=socrbase.scname AND {x}.aolevel=socrbase.level WHERE parentguid IS NULL AND actstatus=1"));
             }
-
         }
+
         public async Task<List<Element>> GetDetails(string guid, bool formal = false, bool socr = false)
         {
             using (var connection = new NpgsqlConnection(GetConnectionString()))
@@ -100,82 +100,85 @@ namespace Mapper.Services.Api
 
                 var result = new List<Element>();
 
-                using (var command = new NpgsqlCommand(_parentRoomSql, connection))
-                {
-                    command.Parameters.AddWithValue("p", guid);
-                    using (var reader = command.ExecuteReader())
+                if (!string.IsNullOrEmpty(guid))
+                    using (var command = new NpgsqlCommand(_parentRoomSql, connection))
                     {
-                        if (reader.Read())
+                        command.Parameters.AddWithValue("p", guid);
+                        using (var reader = command.ExecuteReader())
                         {
-                            var list = new List<string>();
-                            var flatnumber = reader.GetString(1);
-                            var roomnumber = reader.GetString(2);
-                            if (!string.IsNullOrEmpty(roomnumber)) list.Add($"комн. {roomnumber}");
-                            if (!string.IsNullOrEmpty(flatnumber)) list.Add($"кв. {flatnumber}");
-                            list.Reverse();
-                            result.Add(new Room
+                            if (reader.Read())
                             {
-                                guid = Guid.Parse(guid),
-                                flatnumber = flatnumber,
-                                roomnumber = roomnumber,
-                                title = string.Join(", ", list)
-                            });
-                            guid = reader.GetString(0);
+                                var list = new List<string>();
+                                var flatnumber = reader.SafeGetString(1);
+                                var roomnumber = reader.SafeGetString(2);
+                                if (!string.IsNullOrEmpty(roomnumber)) list.Add($"комн. {roomnumber}");
+                                if (!string.IsNullOrEmpty(flatnumber)) list.Add($"кв. {flatnumber}");
+                                list.Reverse();
+                                result.Add(new Room
+                                {
+                                    guid = Guid.Parse(guid),
+                                    flatnumber = flatnumber,
+                                    roomnumber = roomnumber,
+                                    title = string.Join(", ", list)
+                                });
+                                guid = reader.SafeGetString(0);
+                            }
                         }
                     }
-                }
 
 
-                using (var command = new NpgsqlCommand(_parentHouseSql, connection))
-                {
-                    command.Parameters.AddWithValue("p", guid);
-                    using (var reader = command.ExecuteReader())
+                if (!string.IsNullOrEmpty(guid))
+                    using (var command = new NpgsqlCommand(_parentHouseSql, connection))
                     {
-                        if (reader.Read())
+                        command.Parameters.AddWithValue("p", guid);
+                        using (var reader = command.ExecuteReader())
                         {
-                            var list = new List<string>();
-                            var housenum = reader.GetString(1);
-                            var buildnum = reader.GetString(2);
-                            var strucnum = reader.GetString(3);
-                            if (!string.IsNullOrEmpty(strucnum)) list.Add($"стр. {strucnum}");
-                            if (!string.IsNullOrEmpty(buildnum)) list.Add($"корп. {buildnum}");
-                            if (!string.IsNullOrEmpty(housenum)) list.Add($"д. {housenum}");
-                            list.Reverse();
-                            result.Add(new House
+                            if (reader.Read())
                             {
-                                guid = Guid.Parse(guid),
-                                housenum = housenum,
-                                buildnum = buildnum,
-                                strucnum = strucnum,
-                                title = string.Join(", ", list)
-                            });
-                            guid = reader.GetString(0);
+                                var list = new List<string>();
+                                var housenum = reader.SafeGetString(1);
+                                var buildnum = reader.SafeGetString(2);
+                                var strucnum = reader.SafeGetString(3);
+                                if (!string.IsNullOrEmpty(strucnum)) list.Add($"стр. {strucnum}");
+                                if (!string.IsNullOrEmpty(buildnum)) list.Add($"корп. {buildnum}");
+                                if (!string.IsNullOrEmpty(housenum)) list.Add($"д. {housenum}");
+                                list.Reverse();
+                                result.Add(new House
+                                {
+                                    guid = Guid.Parse(guid),
+                                    housenum = housenum,
+                                    buildnum = buildnum,
+                                    strucnum = strucnum,
+                                    title = string.Join(", ", list)
+                                });
+                                guid = reader.SafeGetString(0);
+                            }
                         }
                     }
-                }
 
-                using (var command = new NpgsqlCommand(_parentSteadSql, connection))
-                {
-                    command.Parameters.AddWithValue("p", guid);
-                    using (var reader = command.ExecuteReader())
+                if (!string.IsNullOrEmpty(guid))
+                    using (var command = new NpgsqlCommand(_parentSteadSql, connection))
                     {
-                        if (reader.Read())
+                        command.Parameters.AddWithValue("p", guid);
+                        using (var reader = command.ExecuteReader())
                         {
-                            var list = new List<string>();
-                            var number = reader.GetString(1);
-                            if (!string.IsNullOrEmpty(number)) list.Add($"уч. {number}");
-                            result.Add(new Stead
+                            if (reader.Read())
                             {
-                                guid = Guid.Parse(guid),
-                                number = number,
-                                title = string.Join(", ", list)
-                            });
-                            guid = reader.GetString(0);
+                                var list = new List<string>();
+                                var number = reader.SafeGetString(1);
+                                if (!string.IsNullOrEmpty(number)) list.Add($"уч. {number}");
+                                result.Add(new Stead
+                                {
+                                    guid = Guid.Parse(guid),
+                                    number = number,
+                                    title = string.Join(", ", list)
+                                });
+                                guid = reader.SafeGetString(0);
+                            }
                         }
                     }
-                }
 
-                for (var run = true; run;)
+                for (var run = !string.IsNullOrEmpty(guid); run;)
                 {
                     run = false;
 
@@ -186,11 +189,10 @@ namespace Mapper.Services.Api
                         {
                             if (reader.Read())
                             {
-                                run = true;
-                                var offname = reader.GetString(1);
-                                var formalname = reader.GetString(2);
-                                var shortname = reader.GetString(3);
-                                var socrname = reader.GetString(4);
+                                var offname = reader.SafeGetString(1);
+                                var formalname = reader.SafeGetString(2);
+                                var shortname = reader.SafeGetString(3);
+                                var socrname = reader.SafeGetString(4);
                                 var title = $"{(socr ? socrname : shortname)} {(formal ? formalname : offname)}";
                                 result.Add(new Address
                                 {
@@ -201,7 +203,8 @@ namespace Mapper.Services.Api
                                     socrname = socrname,
                                     title = title
                                 });
-                                guid = reader.GetString(0);
+                                guid = reader.SafeGetString(0);
+                                run = !string.IsNullOrEmpty(guid);
                             }
                         }
                     }
@@ -212,6 +215,7 @@ namespace Mapper.Services.Api
                 return result;
             }
         }
+
         public async Task<List<Element>> GetChildren(string guid, bool formal = false, bool socr = false)
         {
             using (var connection = new NpgsqlConnection(GetConnectionString()))
@@ -228,14 +232,14 @@ namespace Mapper.Services.Api
                         if (reader.Read())
                         {
                             var list = new List<string>();
-                            var flatnumber = reader.GetString(1);
-                            var roomnumber = reader.GetString(2);
+                            var flatnumber = reader.SafeGetString(1);
+                            var roomnumber = reader.SafeGetString(2);
                             if (!string.IsNullOrEmpty(roomnumber)) list.Add($"комн. {roomnumber}");
                             if (!string.IsNullOrEmpty(flatnumber)) list.Add($"кв. {flatnumber}");
                             list.Reverse();
                             result.Add(new Room
                             {
-                                guid = Guid.Parse(reader.GetString(0)),
+                                guid = Guid.Parse(reader.SafeGetString(0)),
                                 flatnumber = flatnumber,
                                 roomnumber = roomnumber,
                                 title = string.Join(", ", list)
@@ -253,16 +257,16 @@ namespace Mapper.Services.Api
                         if (reader.Read())
                         {
                             var list = new List<string>();
-                            var housenum = reader.GetString(1);
-                            var buildnum = reader.GetString(2);
-                            var strucnum = reader.GetString(3);
+                            var housenum = reader.SafeGetString(1);
+                            var buildnum = reader.SafeGetString(2);
+                            var strucnum = reader.SafeGetString(3);
                             if (!string.IsNullOrEmpty(strucnum)) list.Add($"стр. {strucnum}");
                             if (!string.IsNullOrEmpty(buildnum)) list.Add($"корп. {buildnum}");
                             if (!string.IsNullOrEmpty(housenum)) list.Add($"д. {housenum}");
                             list.Reverse();
                             result.Add(new House
                             {
-                                guid = Guid.Parse(reader.GetString(0)),
+                                guid = Guid.Parse(reader.SafeGetString(0)),
                                 housenum = housenum,
                                 buildnum = buildnum,
                                 strucnum = strucnum,
@@ -280,11 +284,11 @@ namespace Mapper.Services.Api
                         if (reader.Read())
                         {
                             var list = new List<string>();
-                            var number = reader.GetString(1);
+                            var number = reader.SafeGetString(1);
                             if (!string.IsNullOrEmpty(number)) list.Add($"уч. {number}");
                             result.Add(new Stead
                             {
-                                guid = Guid.Parse(reader.GetString(0)),
+                                guid = Guid.Parse(reader.SafeGetString(0)),
                                 number = number,
                                 title = string.Join(", ", list)
                             });
@@ -300,14 +304,14 @@ namespace Mapper.Services.Api
                     {
                         while (reader.Read())
                         {
-                            var offname = reader.GetString(1);
-                            var formalname = reader.GetString(2);
-                            var shortname = reader.GetString(3);
-                            var socrname = reader.GetString(4);
+                            var offname = reader.SafeGetString(1);
+                            var formalname = reader.SafeGetString(2);
+                            var shortname = reader.SafeGetString(3);
+                            var socrname = reader.SafeGetString(4);
                             var title = $"{(socr ? socrname : shortname)} {(formal ? formalname : offname)}";
                             result.Add(new Address
                             {
-                                guid = Guid.Parse(reader.GetString(0)),
+                                guid = Guid.Parse(reader.SafeGetString(0)),
                                 offname = offname,
                                 formalname = formalname,
                                 shortname = shortname,
@@ -321,6 +325,7 @@ namespace Mapper.Services.Api
                 return result;
             }
         }
+
         public async Task<List<Element>> GetRoots(bool formal = false, bool socr = false)
         {
             using (var connection = new NpgsqlConnection(GetConnectionString()))
@@ -336,14 +341,14 @@ namespace Mapper.Services.Api
                         if (reader.Read())
                         {
                             var list = new List<string>();
-                            var flatnumber = reader.GetString(1);
-                            var roomnumber = reader.GetString(2);
+                            var flatnumber = reader.SafeGetString(1);
+                            var roomnumber = reader.SafeGetString(2);
                             if (!string.IsNullOrEmpty(roomnumber)) list.Add($"комн. {roomnumber}");
                             if (!string.IsNullOrEmpty(flatnumber)) list.Add($"кв. {flatnumber}");
                             list.Reverse();
                             result.Add(new Room
                             {
-                                guid = Guid.Parse(reader.GetString(0)),
+                                guid = Guid.Parse(reader.SafeGetString(0)),
                                 flatnumber = flatnumber,
                                 roomnumber = roomnumber,
                                 title = string.Join(", ", list)
@@ -360,16 +365,16 @@ namespace Mapper.Services.Api
                         if (reader.Read())
                         {
                             var list = new List<string>();
-                            var housenum = reader.GetString(1);
-                            var buildnum = reader.GetString(2);
-                            var strucnum = reader.GetString(3);
+                            var housenum = reader.SafeGetString(1);
+                            var buildnum = reader.SafeGetString(2);
+                            var strucnum = reader.SafeGetString(3);
                             if (!string.IsNullOrEmpty(strucnum)) list.Add($"стр. {strucnum}");
                             if (!string.IsNullOrEmpty(buildnum)) list.Add($"корп. {buildnum}");
                             if (!string.IsNullOrEmpty(housenum)) list.Add($"д. {housenum}");
                             list.Reverse();
                             result.Add(new House
                             {
-                                guid = Guid.Parse(reader.GetString(0)),
+                                guid = Guid.Parse(reader.SafeGetString(0)),
                                 housenum = housenum,
                                 buildnum = buildnum,
                                 strucnum = strucnum,
@@ -386,11 +391,11 @@ namespace Mapper.Services.Api
                         if (reader.Read())
                         {
                             var list = new List<string>();
-                            var number = reader.GetString(1);
+                            var number = reader.SafeGetString(1);
                             if (!string.IsNullOrEmpty(number)) list.Add($"уч. {number}");
                             result.Add(new Stead
                             {
-                                guid = Guid.Parse(reader.GetString(0)),
+                                guid = Guid.Parse(reader.SafeGetString(0)),
                                 number = number,
                                 title = string.Join(", ", list)
                             });
@@ -405,14 +410,14 @@ namespace Mapper.Services.Api
                     {
                         while (reader.Read())
                         {
-                            var offname = reader.GetString(1);
-                            var formalname = reader.GetString(2);
-                            var shortname = reader.GetString(3);
-                            var socrname = reader.GetString(4);
+                            var offname = reader.SafeGetString(1);
+                            var formalname = reader.SafeGetString(2);
+                            var shortname = reader.SafeGetString(3);
+                            var socrname = reader.SafeGetString(4);
                             var title = $"{(socr ? socrname : shortname)} {(formal ? formalname : offname)}";
                             result.Add(new Address
                             {
-                                guid = Guid.Parse(reader.GetString(0)),
+                                guid = Guid.Parse(reader.SafeGetString(0)),
                                 offname = offname,
                                 formalname = formalname,
                                 shortname = shortname,
