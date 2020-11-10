@@ -7,8 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Sql\Osm\CreateTempTables.sql" />
+    <None Remove="Sql\Osm\InsertFromTempTables.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="Sql\Osm\CreateIndeces.sql" />
     <EmbeddedResource Include="Sql\Osm\CreateTables.sql" />
+    <EmbeddedResource Include="Sql\Osm\CreateTempTables.sql" />
+    <EmbeddedResource Include="Sql\Osm\InsertFromTempTables.sql" />
   </ItemGroup>
 
  
@@ -22,6 +29,11 @@
     <PackageReference Include="OsmSharp.Geo" Version="6.2.0" />
     <PackageReference Include="System.IO.Compression.ZipFile" Version="4.3.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.1" />
+  </ItemGroup>
+
+ 
+  <ItemGroup>
+    <Folder Include="Views\Fias\" />
   </ItemGroup>
 
 

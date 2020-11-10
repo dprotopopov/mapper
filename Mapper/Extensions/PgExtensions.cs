@@ -44,38 +44,61 @@ namespace Mapper.Extensions
                 : string.Empty;
         }
 
-        public static string TextEscape(this string s, int doubleQuotes = 0)
+        public static string TextEscape(this string s, int mode = 0)
         {
-            s = s.Replace("\\", @"\\");
-
-            switch (doubleQuotes)
+            switch (mode)
             {
+                case 0:
+                    return s.Replace("\\", @"\\")
+                        .Replace("\'", @"\'")
+                        .Replace("\r", @"\r")
+                        .Replace("\n", @"\n")
+                        .Replace("\t", @"\t")
+                        .Replace("\a", @"\a")
+                        .Replace("\b", @"\b")
+                        .Replace("\f", @"\f")
+                        .Replace("\v", @"\v")
+                        .Replace("\0", @"\0");
                 case 1:
-                    s = s.Replace("\\", @"\\").Replace("\"", @"\""");
-                    break;
+                    return s.Replace("\\", @"\\")
+                        .Replace("\"", @"\""")
+                        .Replace("\'", @"\'")
+                        .Replace("\r", @"\r")
+                        .Replace("\n", @"\n")
+                        .Replace("\t", @"\t")
+                        .Replace("\a", @"\a")
+                        .Replace("\b", @"\b")
+                        .Replace("\f", @"\f")
+                        .Replace("\v", @"\v")
+                        .Replace("\0", @"\0");
                 case 2:
-                    s = s.Replace("\\", @"\\\\").Replace("\"", @"\\\""");
-                    break;
+                    return s.Replace("\\", @"\\\\")
+                        .Replace("\"", @"\\\""")
+                        .Replace("\'", @"\\\'")
+                        .Replace("\r", @"\\\r")
+                        .Replace("\n", @"\\\n")
+                        .Replace("\t", @"\\\t")
+                        .Replace("\a", @"\\\a")
+                        .Replace("\b", @"\\\b")
+                        .Replace("\f", @"\\\f")
+                        .Replace("\v", @"\\\v")
+                        .Replace("\0", @"\\\0");
                 case 4:
-                    s = s.Replace("\\", @"\\\\\\").Replace("\"", @"\\\\""");
-                    break;
+                    return s.Replace("\\", @"\\\\\\\\")
+                        .Replace("\"", @"\\\\\\\""")
+                        .Replace("\'", @"\\\\\\\'")
+                        .Replace("\r", @"\\\\\\\r")
+                        .Replace("\n", @"\\\\\\\n")
+                        .Replace("\t", @"\\\\\\\t")
+                        .Replace("\a", @"\\\\\\\a")
+                        .Replace("\b", @"\\\\\\\b")
+                        .Replace("\f", @"\\\\\\\f")
+                        .Replace("\v", @"\\\\\\\v")
+                        .Replace("\0", @"\\\\\\\0");
                 default:
-                    s = s.Replace("\\", @"\\");
-                    break;
+                    throw new NotImplementedException();
             }
 
-            s = s.Replace("\'", @"\'")
-                    .Replace("\r", @"\r")
-                    .Replace("\n", @"\n")
-                    .Replace("\t", @"\t")
-                    .Replace("\a", @"\a")
-                    .Replace("\b", @"\b")
-                    .Replace("\f", @"\f")
-                    .Replace("\v", @"\v")
-                    .Replace("\0", @"\0")
-                ;
-
-            return s;
         }
 
         public static string ValueAsText(this double? value)

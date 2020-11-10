@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
-using Mapper.Services;
+﻿using System.IO;
+using System.Net;
+using System.Threading.Tasks;
+using Mapper.Services.Upload;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -7,40 +9,35 @@ using Npgsql;
 
 namespace Mapper.Controllers
 {
-    public abstract class UploadController<TService> : Controller where TService : IManagerService
+    public abstract class UploadController<TService> : Controller where TService : IUploadrService
     {
         protected readonly IConfiguration Configuration;
-        protected readonly TService Service;
+        protected readonly TService UploadService;
 
-        public UploadController(IConfiguration configuration, TService service)
+        public UploadController(IConfiguration configuration, TService uploadService)
         {
             Configuration = configuration;
-            Service = service;
+            UploadService = uploadService;
         }
 
-        public async Task<IActionResult> Install()
+        public async Task<IActionResult> InstallFromFile()
         {
-            string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
-            string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+            var actionName = ControllerContext.RouteData.Values["action"].ToString();
+            var controllerName = ControllerContext.RouteData.Values["controller"].ToString();
             ViewBag.UploadLink = $"/{controllerName}/{actionName}";
             var info = GetInstallInfo();
             ViewBag.Title = info.Title;
             ViewBag.Label = info.Label;
-            return View("~/Views/_Upload.cshtml");
+            return View("~/Views/_UploadFromFile.cshtml");
         }
 
         protected abstract string GetConnectionString();
-
-        public class ViewBagInfo
-        {
-            public string Title { get; set; }
-            public string Label { get; set; }
-        }
         protected abstract ViewBagInfo GetInstallInfo();
         protected abstract ViewBagInfo GetIUpdateInfo();
 
         [HttpPost]
-        public async Task<IActionResult> Install(IFormFile file, string session)
+        [DisableRequestSizeLimit]
+        public async Task<IActionResult> InstallFromFile(IFormFile file, string session)
         {
             var connectionString = GetConnectionString();
 
@@ -48,27 +45,28 @@ namespace Mapper.Controllers
             using (var stream = file.OpenReadStream())
             {
                 connection.Open();
-                await Service.Install(stream, connection, session);
+                await UploadService.Install(stream, connection, session);
                 connection.Close();
             }
 
             return Content(file.FileName);
         }
 
-        public async Task<IActionResult> Update()
+        public async Task<IActionResult> UpdateFromFile()
         {
-            string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
-            string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+            var actionName = ControllerContext.RouteData.Values["action"].ToString();
+            var controllerName = ControllerContext.RouteData.Values["controller"].ToString();
             ViewBag.UploadLink = $"/{controllerName}/{actionName}";
             var info = GetIUpdateInfo();
             ViewBag.Title = info.Title;
             ViewBag.Label = info.Label;
 
-            return View("~/Views/_Upload.cshtml");
+            return View("~/Views/_UploadFromFile.cshtml");
         }
 
         [HttpPost]
-        public async Task<IActionResult> Update(IFormFile file, string session)
+        [DisableRequestSizeLimit]
+        public async Task<IActionResult> UpdateFromFile(IFormFile file, string session)
         {
             var connectionString = GetConnectionString();
 
@@ -76,11 +74,98 @@ namespace Mapper.Controllers
             using (var stream = file.OpenReadStream())
             {
                 connection.Open();
-                await Service.Update(stream, connection, session);
+                await UploadService.Update(stream, connection, session);
                 connection.Close();
             }
 
             return Content(file.FileName);
+        }
+
+        public async Task<IActionResult> InstallFromUrl()
+        {
+            var actionName = ControllerContext.RouteData.Values["action"].ToString();
+            var controllerName = ControllerContext.RouteData.Values["controller"].ToString();
+            ViewBag.UploadLink = $"/{controllerName}/{actionName}";
+            var info = GetInstallInfo();
+            ViewBag.Title = info.Title;
+            ViewBag.Label = info.Label;
+            return View("~/Views/_UploadFromUrl.cshtml");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> InstallFromUrl(string url, string session)
+        {
+            var connectionString = GetConnectionString();
+            using (var tempFileStream = new FileStream(Path.GetTempFileName(), FileMode.Create,
+                FileAccess.ReadWrite, FileShare.None,
+                4096, FileOptions.DeleteOnClose))
+            {
+                using (WebClient webClient = new WebClient())
+                {
+                    using (Stream streamFile = webClient.OpenRead(url))
+                    {
+                        streamFile.CopyTo(tempFileStream);
+                    }
+                }
+
+                tempFileStream.Position = 0;
+
+                using (var connection = new NpgsqlConnection(connectionString))
+                {
+                    connection.Open();
+                    await UploadService.Install(tempFileStream, connection, session);
+                    connection.Close();
+                }
+            }
+
+            return Content(url);
+        }
+
+        public async Task<IActionResult> UpdateFromUrl()
+        {
+            var actionName = ControllerContext.RouteData.Values["action"].ToString();
+            var controllerName = ControllerContext.RouteData.Values["controller"].ToString();
+            ViewBag.UploadLink = $"/{controllerName}/{actionName}";
+            var info = GetIUpdateInfo();
+            ViewBag.Title = info.Title;
+            ViewBag.Label = info.Label;
+
+            return View("~/Views/_UploadFromUrl.cshtml");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateFromUrl(string url, string session)
+        {
+            var connectionString = GetConnectionString();
+            using (var tempFileStream = new FileStream(Path.GetTempFileName(), FileMode.Create,
+                FileAccess.ReadWrite, FileShare.None,
+                4096, FileOptions.DeleteOnClose))
+            {
+                using (WebClient webClient = new WebClient())
+                {
+                    using (Stream streamFile = webClient.OpenRead(url))
+                    {
+                        streamFile.CopyTo(tempFileStream);
+                    }
+                }
+
+                tempFileStream.Position = 0;
+
+                using (var connection = new NpgsqlConnection(connectionString))
+                {
+                    connection.Open();
+                    await UploadService.Update(tempFileStream, connection, session);
+                    connection.Close();
+                }
+            }
+
+            return Content(url);
+        }
+
+        public class ViewBagInfo
+        {
+            public string Title { get; set; }
+            public string Label { get; set; }
         }
     }
 }

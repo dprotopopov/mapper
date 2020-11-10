@@ -1,16 +1,17 @@
 ﻿using Mapper.Services;
+using Mapper.Services.Upload;
 using Microsoft.Extensions.Configuration;
 
 namespace Mapper.Controllers
 {
-    public class OsmController : UploadController<OsmService>
+    public class OsmController : UploadController<OsmUploadService>
     {
         protected override string GetConnectionString()
         {
             return Configuration.GetConnectionString("OsmConnection");
         }
 
-        public OsmController(IConfiguration configuration, OsmService service) : base(configuration, service)
+        public OsmController(IConfiguration configuration, OsmUploadService uploadService) : base(configuration, uploadService)
         {
         }
         protected override ViewBagInfo GetInstallInfo()
