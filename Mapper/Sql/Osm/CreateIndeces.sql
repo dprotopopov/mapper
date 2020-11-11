@@ -1,6 +1,6 @@
-﻿INSERT INTO place(osm_id,osm_type,tags) SELECT id,2,tags FROM relation WHERE tags IS NOT NULL AND array_length(akeys(tags),1)>0;
-INSERT INTO place(osm_id,osm_type,tags) SELECT id,1,tags FROM way WHERE tags IS NOT NULL AND array_length(akeys(tags),1)>0;
-INSERT INTO place(osm_id,osm_type,tags) SELECT id,0,tags FROM node WHERE tags IS NOT NULL AND array_length(akeys(tags),1)>0;
+﻿INSERT INTO place(osm_id,osm_type,tags) SELECT id,'relation',tags FROM relation WHERE tags IS NOT NULL AND array_length(akeys(tags),1)>0;
+INSERT INTO place(osm_id,osm_type,tags) SELECT id,'way',tags FROM way WHERE tags IS NOT NULL AND array_length(akeys(tags),1)>0;
+INSERT INTO place(osm_id,osm_type,tags) SELECT id,'node',tags FROM node WHERE tags IS NOT NULL AND array_length(akeys(tags),1)>0;
 
 CREATE UNIQUE INDEX ON place (osm_id,osm_type);
 ALTER TABLE node ADD PRIMARY KEY (id);

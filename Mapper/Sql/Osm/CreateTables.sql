@@ -8,11 +8,15 @@ DROP TABLE IF EXISTS relation;
 DROP TABLE IF EXISTS temp_node;
 DROP TABLE IF EXISTS temp_way;
 DROP TABLE IF EXISTS temp_relation;
+
 DROP TYPE IF EXISTS relation_member;
+DROP TYPE IF EXISTS osm_type;
+
+CREATE TYPE osm_type AS ENUM ('node', 'way', 'relation');
 
 CREATE TABLE place (
 	osm_id BIGINT, 
-	osm_type INTEGER,
+	osm_type osm_type,
 	tags hstore,
 	record_number BIGINT DEFAULT nextval('record_number_seq')
 );

@@ -1,5 +1,4 @@
 using Mapper.Hubs;
-using Mapper.Services;
 using Mapper.Services.Api;
 using Mapper.Services.Upload;
 using Microsoft.AspNetCore.Builder;
@@ -31,10 +30,7 @@ namespace Mapper
             services.AddSingleton<ProgressHub>();
             services.AddControllersWithViews();
             services.AddSignalR();
-            services.Configure<IISServerOptions>(options =>
-            {
-                options.MaxRequestBodySize = int.MaxValue;
-            });
+            services.Configure<IISServerOptions>(options => { options.MaxRequestBodySize = int.MaxValue; });
             services.Configure<KestrelServerOptions>(options =>
             {
                 options.Limits.MaxRequestBodySize = int.MaxValue; // if don't set default value is: 30 MB

@@ -212,7 +212,7 @@ namespace Mapper.Services.Upload
                                 lastType = ElementType.Node;
                                 writer?.Dispose();
                                 writer = connection.BeginTextImport(
-                                    $"COPY Temp_Node ({string.Join(", ", nodeKeys)}) FROM STDIN WITH NULL AS '';");
+                                    $"COPY temp_node ({string.Join(", ", nodeKeys)}) FROM STDIN WITH NULL AS '';");
                             }
 
                             var nodeValues = new List<string>
@@ -238,7 +238,7 @@ namespace Mapper.Services.Upload
                                 lastType = ElementType.Way;
                                 writer?.Dispose();
                                 writer = connection.BeginTextImport(
-                                    $"COPY Temp_Way ({string.Join(", ", wayKeys)}) FROM STDIN WITH NULL AS '';");
+                                    $"COPY temp_way ({string.Join(", ", wayKeys)}) FROM STDIN WITH NULL AS '';");
                             }
 
                             var wayValues = new List<string>
@@ -263,7 +263,7 @@ namespace Mapper.Services.Upload
                                 lastType = ElementType.Relation;
                                 writer?.Dispose();
                                 writer = connection.BeginTextImport(
-                                    $"COPY Temp_Relation ({string.Join(", ", relationKeys)}) FROM STDIN WITH NULL AS '';");
+                                    $"COPY temp_relation ({string.Join(", ", relationKeys)}) FROM STDIN WITH NULL AS '';");
                             }
 
                             var relationValues = new List<string>

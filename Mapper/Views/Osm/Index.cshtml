@@ -9,9 +9,9 @@
     @Html.TextBox("osm_id")
     @Html.DropDownList("osm_type", new List<SelectListItem>()
     {
-        new SelectListItem("Node", "0"),
-        new SelectListItem("Way", "1"),
-        new SelectListItem("Relation", "2"),
+        new SelectListItem("Node", "node"),
+        new SelectListItem("Way", "way"),
+        new SelectListItem("Relation", "relation"),
     })
     <br />
     <input type="submit" value="Выбрать" class="btn btn-primary" />

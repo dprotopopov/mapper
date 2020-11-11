@@ -1,9 +1,14 @@
-﻿namespace Mapper.Services.Api
+﻿using NpgsqlTypes;
+
+namespace Mapper.Services.Api
 {
     public enum OsmType
     {
-        Node = 0,
-        Way = 1,
-        Relation = 2,
+        [PgName("node")]
+        Node,
+        [PgName("way")]
+        Way,
+        [PgName("relation")]
+        Relation,
     }
 }

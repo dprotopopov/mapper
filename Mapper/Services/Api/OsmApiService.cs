@@ -62,6 +62,8 @@ namespace Mapper.Services.Api
                 connection.Open();
 
                 connection.TypeMapper.MapComposite<RelationMember>("relation_member");
+                connection.TypeMapper.MapEnum<OsmType>("osm_type");
+
                 switch (type)
                 {
                     case OsmType.Node:

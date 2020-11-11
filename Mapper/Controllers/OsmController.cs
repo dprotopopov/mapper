@@ -1,4 +1,5 @@
-﻿using Mapper.Services.Api;
+﻿using System;
+using Mapper.Services.Api;
 using Mapper.Services.Upload;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -48,9 +49,10 @@ namespace Mapper.Controllers
         public IActionResult Index(string osm_id, string osm_type)
         {
             long.TryParse(osm_id, out var id);
-            int.TryParse(osm_type, out var type);
 
-            return Content(JsonConvert.SerializeObject(_osmApiService.GetOsmById(id, (OsmType) type)));
+            var type=(OsmType)Enum.Parse(typeof(OsmType), osm_type, true);
+
+            return Content(JsonConvert.SerializeObject(_osmApiService.GetOsmById(id, type)));
         }
     }
 }
