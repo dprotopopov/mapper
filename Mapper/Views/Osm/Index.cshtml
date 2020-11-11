@@ -1,0 +1,18 @@
+﻿@{
+    ViewData["Title"] = "OSM";
+}
+
+<h1>OSM</h1>
+
+@using (Html.BeginForm(method: FormMethod.Post))
+{
+    @Html.TextBox("osm_id")
+    @Html.DropDownList("osm_type", new List<SelectListItem>()
+    {
+        new SelectListItem("Node", "0"),
+        new SelectListItem("Way", "1"),
+        new SelectListItem("Relation", "2"),
+    })
+    <br />
+    <input type="submit" value="Выбрать" class="btn btn-primary" />
+}

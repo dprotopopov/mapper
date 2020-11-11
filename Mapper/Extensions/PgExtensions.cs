@@ -1,8 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
-using System.Text.RegularExpressions;
+using System.Linq;
 using NDbfReader;
+using Newtonsoft.Json;
 using Npgsql;
+using OsmSharp;
+using OsmSharp.Tags;
+using RelationMember = Mapper.Services.Api.RelationMember;
 
 namespace Mapper.Extensions
 {
@@ -99,7 +104,6 @@ namespace Mapper.Extensions
                 default:
                     throw new NotImplementedException();
             }
-
         }
 
         public static string ValueAsText(this double? value)
@@ -120,6 +124,85 @@ namespace Mapper.Extensions
         public static string SafeGetString(this NpgsqlDataReader reader, int ordinal)
         {
             return reader.IsDBNull(ordinal) ? null : reader.GetString(ordinal);
+        }
+
+        public static int? SafeGetInt32(this NpgsqlDataReader reader, int ordinal)
+        {
+            return reader.IsDBNull(ordinal) ? (int?) null : reader.GetInt32(ordinal);
+        }
+
+        public static long? SafeGetInt64(this NpgsqlDataReader reader, int ordinal)
+        {
+            return reader.IsDBNull(ordinal) ? (long?) null : reader.GetInt64(ordinal);
+        }
+
+        public static double? SafeGetDouble(this NpgsqlDataReader reader, int ordinal)
+        {
+            return reader.IsDBNull(ordinal) ? (double?) null : reader.GetDouble(ordinal);
+        }
+
+        public static DateTime? SafeGetDateTime(this NpgsqlDataReader reader, int ordinal)
+        {
+            return reader.IsDBNull(ordinal) ? (DateTime?) null : reader.GetDateTime(ordinal);
+        }
+
+        public static bool? SafeGetBoolean(this NpgsqlDataReader reader, int ordinal)
+        {
+            return reader.IsDBNull(ordinal) ? (bool?) null : reader.GetBoolean(ordinal);
+        }
+
+        public static object SafeGetValue(this NpgsqlDataReader reader, int ordinal)
+        {
+            return reader.IsDBNull(ordinal) ? null : reader.GetValue(ordinal);
+        }
+
+        public static TagsCollection ToTags(this string s)
+        {
+            var result = new TagsCollection();
+            var dictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(s);
+            foreach (var pair in dictionary) result.AddOrReplace(pair.Key, pair.Value);
+            return result;
+        }
+
+        public static void Fill(this Node node, NpgsqlDataReader reader)
+        {
+            node.Id = reader.SafeGetInt64(0);
+            node.Version = reader.SafeGetInt32(1);
+            node.Latitude = reader.SafeGetDouble(2);
+            node.Longitude = reader.SafeGetDouble(3);
+            node.ChangeSetId = reader.SafeGetInt64(4);
+            node.TimeStamp = reader.SafeGetDateTime(5);
+            node.UserId = reader.SafeGetInt64(6);
+            node.UserName = reader.SafeGetString(7);
+            node.Visible = reader.SafeGetBoolean(8);
+            node.Tags = reader.SafeGetString(9).ToTags();
+        }
+
+        public static void Fill(this Way way, NpgsqlDataReader reader)
+        {
+            way.Id = reader.SafeGetInt64(0);
+            way.Version = reader.SafeGetInt32(1);
+            way.ChangeSetId = reader.SafeGetInt64(2);
+            way.TimeStamp = reader.SafeGetDateTime(3);
+            way.UserId = reader.SafeGetInt64(4);
+            way.UserName = reader.SafeGetString(5);
+            way.Visible = reader.SafeGetBoolean(6);
+            way.Tags = reader.SafeGetString(7).ToTags();
+            way.Nodes = (long[]) reader.SafeGetValue(8);
+        }
+
+        public static void Fill(this Relation relation, NpgsqlDataReader reader)
+        {
+            relation.Id = reader.SafeGetInt64(0);
+            relation.Version = reader.SafeGetInt32(1);
+            relation.ChangeSetId = reader.SafeGetInt64(2);
+            relation.TimeStamp = reader.SafeGetDateTime(3);
+            relation.UserId = reader.SafeGetInt64(4);
+            relation.UserName = reader.SafeGetString(5);
+            relation.Visible = reader.SafeGetBoolean(6);
+            relation.Tags = reader.SafeGetString(7).ToTags();
+            relation.Members = ((RelationMember[]) reader.SafeGetValue(8))
+                .Select(x => new OsmSharp.RelationMember(x.Id, x.Role, (OsmGeoType) x.Type)).ToArray();
         }
     }
 }

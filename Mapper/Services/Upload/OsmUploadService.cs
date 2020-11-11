@@ -27,42 +27,42 @@ namespace Mapper.Services.Upload
 
         private readonly List<string> nodeKeys = new List<string>
         {
-            "Id",
-            "Version",
-            "Latitude",
-            "Longitude",
-            "ChangeSetId",
-            "TimeStamp",
-            "UserId",
-            "UserName",
-            "Visible",
-            "Tags"
+            "id",
+            "version",
+            "latitude",
+            "longitude",
+            "change_set_id",
+            "time_stamp",
+            "user_id",
+            "user_name",
+            "visible",
+            "tags"
         };
 
         private readonly List<string> relationKeys = new List<string>
         {
-            "Id",
-            "Version",
-            "ChangeSetId",
-            "TimeStamp",
-            "UserId",
-            "UserName",
-            "Visible",
-            "Tags",
-            "Members"
+            "id",
+            "version",
+            "change_set_id",
+            "time_stamp",
+            "user_id",
+            "user_name",
+            "visible",
+            "tags",
+            "members"
         };
 
         private readonly List<string> wayKeys = new List<string>
         {
-            "Id",
-            "Version",
-            "ChangeSetId",
-            "TimeStamp",
-            "UserId",
-            "UserName",
-            "Visible",
-            "Tags",
-            "Nodes"
+            "id",
+            "version",
+            "change_set_id",
+            "time_stamp",
+            "user_id",
+            "user_name",
+            "visible",
+            "tags",
+            "nodes"
         };
 
         public OsmUploadService(ProgressHub progressHub)

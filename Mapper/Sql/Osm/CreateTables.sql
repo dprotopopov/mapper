@@ -1,50 +1,65 @@
 ﻿CREATE EXTENSION IF NOT EXISTS hstore;
+CREATE SEQUENCE IF NOT EXISTS record_number_seq;
 
-DROP TABLE IF EXISTS Node;
-DROP TABLE IF EXISTS Way;
-DROP TABLE IF EXISTS Relation;
-DROP TYPE IF EXISTS RelationMember;
+DROP TABLE IF EXISTS place;
+DROP TABLE IF EXISTS node;
+DROP TABLE IF EXISTS way;
+DROP TABLE IF EXISTS relation;
+DROP TABLE IF EXISTS temp_node;
+DROP TABLE IF EXISTS temp_way;
+DROP TABLE IF EXISTS temp_relation;
+DROP TYPE IF EXISTS relation_member;
 
-CREATE TABLE Node (
-	Id BIGINT, 
-	Version INTEGER, 
-	Latitude DOUBLE PRECISION, 
-	Longitude DOUBLE PRECISION,
-	ChangeSetId BIGINT, 
-	TimeStamp TIMESTAMP,
-	UserId INT, 
-	UserName VARCHAR(255), 
-	Visible BOOLEAN, 
-	Tags hstore
+CREATE TABLE place (
+	osm_id BIGINT, 
+	osm_type INTEGER,
+	tags hstore,
+	record_number BIGINT DEFAULT nextval('record_number_seq')
 );
 
-CREATE TABLE Way (
-	Id BIGINT, 
-	Version INTEGER, 
-	ChangeSetId BIGINT, 
-	TimeStamp TIMESTAMP,
-	UserId INTEGER, 
-	UserName VARCHAR(255), 
-	Visible BOOLEAN, 
-	Tags hstore,
-	Nodes BIGINT[]
+CREATE TABLE node (
+	id BIGINT, 
+	version INTEGER, 
+	latitude DOUBLE PRECISION, 
+	longitude DOUBLE PRECISION,
+	change_set_id BIGINT, 
+	time_stamp TIMESTAMP,
+	user_id INT, 
+	user_name VARCHAR(255), 
+	visible BOOLEAN, 
+	tags hstore,
+	record_number BIGINT DEFAULT nextval('record_number_seq')
 );
 
-CREATE TYPE RelationMember AS (
-	Id BIGINT, 
-    Role VARCHAR(255),
-    Type INTEGER
+CREATE TABLE way (
+	id BIGINT, 
+	version INTEGER, 
+	change_set_id BIGINT, 
+	time_stamp TIMESTAMP,
+	user_id INTEGER, 
+	user_name VARCHAR(255), 
+	visible BOOLEAN, 
+	tags hstore,
+	nodes BIGINT[],
+	record_number BIGINT DEFAULT nextval('record_number_seq')
 );
 
-CREATE TABLE Relation (
-	Id BIGINT, 
-	Version INTEGER, 
-	ChangeSetId BIGINT, 
-	TimeStamp TIMESTAMP,
-	UserId INTEGER, 
-	UserName VARCHAR(255), 
-	Visible BOOLEAN, 
-	Tags hstore,
-	Members RelationMember[]
+CREATE TYPE relation_member AS (
+	id BIGINT, 
+    role VARCHAR(255),
+    type INTEGER
+);
+
+CREATE TABLE relation (
+	id BIGINT, 
+	version INTEGER, 
+	change_set_id BIGINT, 
+	time_stamp TIMESTAMP,
+	user_id INTEGER, 
+	user_name VARCHAR(255), 
+	visible BOOLEAN, 
+	tags hstore,
+	members relation_member[],
+	record_number BIGINT DEFAULT nextval('record_number_seq')
 );
 

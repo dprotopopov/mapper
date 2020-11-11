@@ -1,103 +1,107 @@
-﻿INSERT INTO Node(
-	Id,
-	Version,
-	Latitude,
-	Longitude,
-	ChangeSetId,
-	TimeStamp,
-	UserId,
-	UserName,
-	Visible,
-	Tags
+﻿INSERT INTO node(
+	id,
+	version,
+	latitude,
+	longitude,
+	change_set_id,
+	time_stamp,
+	user_id,
+	user_name,
+	visible,
+	tags
 )
 SELECT 
-	Id,
-	Version,
-	Latitude,
-	Longitude,
-	ChangeSetId,
-	TimeStamp,
-	UserId,
-	UserName,
-	Visible,
-	Tags
-FROM Temp_Node
-ON CONFLICT (Id) DO UPDATE SET
-	Id=EXCLUDED.Id,
-	Version=EXCLUDED.Version,
-	Latitude=EXCLUDED.Latitude,
-	Longitude=EXCLUDED.Longitude,
-	ChangeSetId=EXCLUDED.ChangeSetId,
-	TimeStamp=EXCLUDED.TimeStamp,
-	UserId=EXCLUDED.UserId,
-	UserName=EXCLUDED.UserName,
-	Visible=EXCLUDED.Visible,
-	Tags=EXCLUDED.Tags;
-INSERT INTO Way(
-	Id,
-	Version,
-	ChangeSetId,
-	TimeStamp,
-	UserId,
-	UserName,
-	Visible,
-	Tags,
-	Nodes
+	id,
+	version,
+	latitude,
+	longitude,
+	change_set_id,
+	time_stamp,
+	user_id,
+	user_name,
+	visible,
+	tags
+FROM temp_node
+ON CONFLICT (id) DO UPDATE SET
+	version=EXCLUDED.version,
+	latitude=EXCLUDED.latitude,
+	longitude=EXCLUDED.longitude,
+	change_set_id=EXCLUDED.change_set_id,
+	time_stamp=EXCLUDED.time_stamp,
+	user_id=EXCLUDED.user_id,
+	user_name=EXCLUDED.user_name,
+	visible=EXCLUDED.visible,
+	tags=EXCLUDED.tags,
+	record_number=nextval('record_number_seq');
+INSERT INTO way(
+	id,
+	version,
+	change_set_id,
+	time_stamp,
+	user_id,
+	user_name,
+	visible,
+	tags,
+	nodes
 )
 SELECT 
-	Id,
-	Version,
-	ChangeSetId,
-	TimeStamp,
-	UserId,
-	UserName,
-	Visible,
-	Tags,
-	Nodes
-FROM Temp_Way
-ON CONFLICT (Id) DO UPDATE SET
-	Id=EXCLUDED.Id,
-	Version=EXCLUDED.Version,
-	ChangeSetId=EXCLUDED.ChangeSetId,
-	TimeStamp=EXCLUDED.TimeStamp,
-	UserId=EXCLUDED.UserId,
-	UserName=EXCLUDED.UserName,
-	Visible=EXCLUDED.Visible,
-	Tags=EXCLUDED.Tags,
-	Nodes=EXCLUDED.Nodes;
-INSERT INTO Relation(
-	Id,
-	Version,
-	ChangeSetId,
-	TimeStamp,
-	UserId,
-	UserName,
-	Visible,
-	Tags,
-	Members
+	id,
+	version,
+	change_set_id,
+	time_stamp,
+	user_id,
+	user_name,
+	visible,
+	tags,
+	nodes
+FROM temp_way
+ON CONFLICT (id) DO UPDATE SET
+	version=EXCLUDED.version,
+	change_set_id=EXCLUDED.change_set_id,
+	time_stamp=EXCLUDED.time_stamp,
+	user_id=EXCLUDED.user_id,
+	user_name=EXCLUDED.user_name,
+	visible=EXCLUDED.visible,
+	tags=EXCLUDED.tags,
+	nodes=EXCLUDED.nodes,
+	record_number=nextval('record_number_seq');
+INSERT INTO relation(
+	id,
+	version,
+	change_set_id,
+	time_stamp,
+	user_id,
+	user_name,
+	visible,
+	tags,
+	members
 )
 SELECT 
-	Id,
-	Version,
-	ChangeSetId,
-	TimeStamp,
-	UserId,
-	UserName,
-	Visible,
-	Tags,
-	Members
-FROM Temp_Relation
-ON CONFLICT (Id) DO UPDATE SET
-	Id=EXCLUDED.Id,
-	Version=EXCLUDED.Version,
-	ChangeSetId=EXCLUDED.ChangeSetId,
-	TimeStamp=EXCLUDED.TimeStamp,
-	UserId=EXCLUDED.UserId,
-	UserName=EXCLUDED.UserName,
-	Visible=EXCLUDED.Visible,
-	Tags=EXCLUDED.Tags,
-	Members=EXCLUDED.Members;
+	id,
+	version,
+	change_set_id,
+	time_stamp,
+	user_id,
+	user_name,
+	visible,
+	tags,
+	members
+FROM temp_relation
+ON CONFLICT (id) DO UPDATE SET
+	version=EXCLUDED.version,
+	change_set_id=EXCLUDED.change_set_id,
+	time_stamp=EXCLUDED.time_stamp,
+	user_id=EXCLUDED.user_id,
+	user_name=EXCLUDED.user_name,
+	visible=EXCLUDED.visible,
+	tags=EXCLUDED.tags,
+	members=EXCLUDED.members,
+	record_number=nextval('record_number_seq');
 
-DROP TABLE Temp_Node;
-DROP TABLE Temp_Way;
-DROP TABLE Temp_Relation;
+INSERT INTO place(osm_id,osm_type,tags) SELECT id,2,tags FROM temp_relation WHERE tags IS NOT NULL AND array_length(akeys(tags),1)>0 ON CONFLICT (osm_id,osm_type) DO UPDATE SET tags=EXCLUDED.tags,record_number=nextval('record_number_seq');
+INSERT INTO place(osm_id,osm_type,tags) SELECT id,1,tags FROM temp_way WHERE tags IS NOT NULL AND array_length(akeys(tags),1)>0 ON CONFLICT (osm_id,osm_type) DO UPDATE SET tags=EXCLUDED.tags,record_number=nextval('record_number_seq');
+INSERT INTO place(osm_id,osm_type,tags) SELECT id,0,tags FROM temp_node WHERE tags IS NOT NULL AND array_length(akeys(tags),1)>0 ON CONFLICT (osm_id,osm_type) DO UPDATE SET tags=EXCLUDED.tags,record_number=nextval('record_number_seq');
+
+DROP TABLE temp_node;
+DROP TABLE temp_way;
+DROP TABLE temp_relation;

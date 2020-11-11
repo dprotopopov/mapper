@@ -53,25 +53,25 @@ namespace Mapper.Controllers
             {
                 model.PreviousItems = new List<SelectListItem>();
 
-                model.NextItems = (await _fiasApiService.GetRoots()).Select(x => new SelectListItem
+                model.NextItems = (await _fiasApiService.GetRoots(socr: true)).Select(x => new SelectListItem
                 {
                     Text = x.title,
                     Value = x.guid.ToString()
-                }).ToList();
+                }).OrderBy(x => x.Text).ToList();
             }
             else
             {
-                model.PreviousItems = (await _fiasApiService.GetDetails(guid)).Select(x => new SelectListItem
+                model.PreviousItems = (await _fiasApiService.GetDetails(guid, socr: true)).Select(x => new SelectListItem
                 {
                     Text = x.title,
                     Value = x.guid.ToString()
                 }).ToList();
 
-                model.NextItems = (await _fiasApiService.GetChildren(guid)).Select(x => new SelectListItem
+                model.NextItems = (await _fiasApiService.GetChildren(guid, socr: true)).Select(x => new SelectListItem
                 {
                     Text = x.title,
                     Value = x.guid.ToString()
-                }).ToList();
+                }).OrderBy(x => x.Text).ToList();
             }
 
             return View(model);

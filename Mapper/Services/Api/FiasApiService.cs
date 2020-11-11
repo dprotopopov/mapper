@@ -27,11 +27,11 @@ namespace Mapper.Services.Api
         private readonly string _rootHouseSql;
         private readonly string _rootRoomSql;
         private readonly string _rootSteadSql;
-        private readonly IConfiguration Configuration;
+        private readonly IConfiguration _configuration;
 
         public FiasApiService(IConfiguration configuration)
         {
-            Configuration = configuration;
+            _configuration = configuration;
 
             using (var connection = new NpgsqlConnection(GetConnectionString()))
             {
@@ -61,7 +61,7 @@ namespace Mapper.Services.Api
                         $"SELECT parentguid,number FROM {x} WHERE steadguid=@p"));
                 _parentAddrobSql = string.Join(" UNION ",
                     _listAddrob.Select(x =>
-                        $"SELECT parentguid,offname,formalname,shortname,socrbase.socrname FROM {x} JOIN socrbase ON {x}.shortname=socrbase.scname AND {x}.aolevel=socrbase.level WHERE aoguid=@p AND actstatus=1"));
+                        $"SELECT parentguid,offname,formalname,shortname,socrbase.socrname,aolevel FROM {x} JOIN socrbase ON {x}.shortname=socrbase.scname AND {x}.aolevel=socrbase.level WHERE aoguid=@p AND actstatus=1"));
 
 
                 _childrenRoomSql = string.Join(" UNION ",
@@ -75,7 +75,7 @@ namespace Mapper.Services.Api
                         $"SELECT steadguid,number FROM {x} WHERE parentguid=@p"));
                 _childrenAddrobSql = string.Join(" UNION ",
                     _listAddrob.Select(x =>
-                        $"SELECT aoguid,offname,formalname,shortname,socrbase.socrname FROM {x} JOIN socrbase ON {x}.shortname=socrbase.scname AND {x}.aolevel=socrbase.level WHERE parentguid=@p AND actstatus=1"));
+                        $"SELECT aoguid,offname,formalname,shortname,socrbase.socrname,aolevel FROM {x} JOIN socrbase ON {x}.shortname=socrbase.scname AND {x}.aolevel=socrbase.level WHERE parentguid=@p AND actstatus=1"));
 
                 _rootRoomSql = string.Join(" UNION ",
                     _listRoom.Select(x =>
@@ -88,7 +88,7 @@ namespace Mapper.Services.Api
                         $"SELECT steadguid,number FROM {x} WHERE parentguid IS NULL"));
                 _rootAddrobSql = string.Join(" UNION ",
                     _listAddrob.Select(x =>
-                        $"SELECT aoguid,offname,formalname,shortname,socrbase.socrname FROM {x} JOIN socrbase ON {x}.shortname=socrbase.scname AND {x}.aolevel=socrbase.level WHERE parentguid IS NULL AND actstatus=1"));
+                        $"SELECT aoguid,offname,formalname,shortname,socrbase.socrname,aolevel FROM {x} JOIN socrbase ON {x}.shortname=socrbase.scname AND {x}.aolevel=socrbase.level WHERE parentguid IS NULL AND actstatus=1"));
             }
         }
 
@@ -193,7 +193,13 @@ namespace Mapper.Services.Api
                                 var formalname = reader.SafeGetString(2);
                                 var shortname = reader.SafeGetString(3);
                                 var socrname = reader.SafeGetString(4);
-                                var title = $"{(socr ? socrname : shortname)} {(formal ? formalname : offname)}";
+                                var aolevel = reader.GetInt32(5);
+                                var title = aolevel > 1
+                                    ?
+                                    $"{(socr ? socrname : shortname)} {(formal ? formalname : offname)}"
+                                    : formal
+                                        ? formalname
+                                        : offname;
                                 result.Add(new Address
                                 {
                                     guid = Guid.Parse(guid),
@@ -201,6 +207,7 @@ namespace Mapper.Services.Api
                                     formalname = formalname,
                                     shortname = shortname,
                                     socrname = socrname,
+                                    aolevel = aolevel,
                                     title = title
                                 });
                                 guid = reader.SafeGetString(0);
@@ -308,7 +315,13 @@ namespace Mapper.Services.Api
                             var formalname = reader.SafeGetString(2);
                             var shortname = reader.SafeGetString(3);
                             var socrname = reader.SafeGetString(4);
-                            var title = $"{(socr ? socrname : shortname)} {(formal ? formalname : offname)}";
+                            var aolevel = reader.GetInt32(5);
+                            var title = aolevel > 1
+                                ?
+                                $"{(socr ? socrname : shortname)} {(formal ? formalname : offname)}"
+                                : formal
+                                    ? formalname
+                                    : offname;
                             result.Add(new Address
                             {
                                 guid = Guid.Parse(reader.SafeGetString(0)),
@@ -316,6 +329,7 @@ namespace Mapper.Services.Api
                                 formalname = formalname,
                                 shortname = shortname,
                                 socrname = socrname,
+                                aolevel = aolevel,
                                 title = title
                             });
                         }
@@ -414,7 +428,13 @@ namespace Mapper.Services.Api
                             var formalname = reader.SafeGetString(2);
                             var shortname = reader.SafeGetString(3);
                             var socrname = reader.SafeGetString(4);
-                            var title = $"{(socr ? socrname : shortname)} {(formal ? formalname : offname)}";
+                            var aolevel = reader.GetInt32(5);
+                            var title = aolevel > 1
+                                ?
+                                $"{(socr ? socrname : shortname)} {(formal ? formalname : offname)}"
+                                : formal
+                                    ? formalname
+                                    : offname;
                             result.Add(new Address
                             {
                                 guid = Guid.Parse(reader.SafeGetString(0)),
@@ -422,6 +442,7 @@ namespace Mapper.Services.Api
                                 formalname = formalname,
                                 shortname = shortname,
                                 socrname = socrname,
+                                aolevel = aolevel,
                                 title = title
                             });
                         }
@@ -434,7 +455,7 @@ namespace Mapper.Services.Api
 
         private string GetConnectionString()
         {
-            return Configuration.GetConnectionString("FiasConnection");
+            return _configuration.GetConnectionString("FiasConnection");
         }
     }
 }

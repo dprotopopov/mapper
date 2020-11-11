@@ -1,41 +1,41 @@
-﻿DROP TABLE IF EXISTS Temp_Node;
-DROP TABLE IF EXISTS Temp_Way;
-DROP TABLE IF EXISTS Temp_Relation;
+﻿DROP TABLE IF EXISTS temp_node;
+DROP TABLE IF EXISTS temp_way;
+DROP TABLE IF EXISTS temp_relation;
 
-CREATE TABLE Temp_Node (
-	Id BIGINT, 
-	Version INTEGER, 
-	Latitude DOUBLE PRECISION, 
-	Longitude DOUBLE PRECISION,
-	ChangeSetId BIGINT, 
-	TimeStamp TIMESTAMP,
-	UserId INT, 
-	UserName VARCHAR(255), 
-	Visible BOOLEAN, 
-	Tags hstore
+CREATE TABLE temp_node (
+	id BIGINT, 
+	version INTEGER, 
+	latitude DOUBLE PRECISION, 
+	longitude DOUBLE PRECISION,
+	change_set_id BIGINT, 
+	time_stamp TIMESTAMP,
+	user_id INT, 
+	user_name VARCHAR(255), 
+	visible BOOLEAN, 
+	tags hstore
 );
 
-CREATE TABLE Temp_Way (
-	Id BIGINT, 
-	Version INTEGER, 
-	ChangeSetId BIGINT, 
-	TimeStamp TIMESTAMP,
-	UserId INTEGER, 
-	UserName VARCHAR(255), 
-	Visible BOOLEAN, 
-	Tags hstore,
-	Nodes BIGINT[]
+CREATE TABLE temp_way (
+	id BIGINT, 
+	version INTEGER, 
+	change_set_id BIGINT, 
+	time_stamp TIMESTAMP,
+	user_id INTEGER, 
+	user_name VARCHAR(255), 
+	visible BOOLEAN, 
+	tags hstore,
+	nodes BIGINT[]
 );
 
-CREATE TABLE Temp_Relation (
-	Id BIGINT, 
-	Version INTEGER, 
-	ChangeSetId BIGINT, 
-	TimeStamp TIMESTAMP,
-	UserId INTEGER, 
-	UserName VARCHAR(255), 
-	Visible BOOLEAN, 
-	Tags hstore,
-	Members RelationMember[]
+CREATE TABLE temp_relation (
+	id BIGINT, 
+	version INTEGER, 
+	change_set_id BIGINT, 
+	time_stamp TIMESTAMP,
+	user_id INTEGER, 
+	user_name VARCHAR(255), 
+	visible BOOLEAN, 
+	tags hstore,
+	members relation_member[]
 );
 

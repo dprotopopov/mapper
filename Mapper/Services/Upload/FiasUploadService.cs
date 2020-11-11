@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -59,6 +60,14 @@ namespace Mapper.Services.Upload
 
         public async Task Install(Stream uploadStream, NpgsqlConnection connection, string session)
         {
+            using (var stream = Assembly.GetExecutingAssembly()
+                .GetManifestResourceStream("Mapper.Sql.Fias.CreateSequence.sql"))
+            using (var sr = new StreamReader(stream, Encoding.UTF8))
+            using (var command = new NpgsqlCommand(await sr.ReadToEndAsync(), connection))
+            {
+                command.ExecuteNonQuery();
+            }
+
             var tableNames = new List<string>();
 
             using (var archive = new ZipArchive(uploadStream))
@@ -209,7 +218,7 @@ namespace Mapper.Services.Upload
                                     if (TableIsExists($"temp_{tableName}", connection))
                                     {
                                         using (var command = new NpgsqlCommand(
-                                            $"INSERT INTO {tableName} ({string.Join(", ", names)}) SELECT {string.Join(", ", names)} FROM temp_{tableName} ON CONFLICT ({key}) DO UPDATE SET {string.Join(", ", names.Select(x => $"{x}=EXCLUDED.{x}"))};"
+                                            $"INSERT INTO {tableName} ({string.Join(", ", names)}) SELECT {string.Join(", ", names)} FROM temp_{tableName} ON CONFLICT ({key}) DO UPDATE SET {string.Join(", ", names.Select(x => $"{x}=EXCLUDED.{x}"))}, record_number=nextval('record_number_seq');"
                                             , connection))
                                         {
                                             command.ExecuteNonQuery();
@@ -255,8 +264,9 @@ namespace Mapper.Services.Upload
 
             var sqls = new[]
             {
+                $"SELECT CONCAT('ALTER TABLE ', table_name, ' ADD COLUMN record_number BIGINT DEFAULT nextval(''record_number_seq'');') FROM information_schema.columns WHERE table_schema = 'public' AND (CONCAT(table_name, 'id')=column_name OR column_name IN ('aoid', 'houseid', 'roomid', 'steadid', 'rmtypeid', 'fltypeid', 'housestid', 'kod_t_st', 'ndtypeid')) AND table_name IN ({string.Join(",", tableNames.Select(x => $"'{x}'"))})",
                 $"SELECT CONCAT('ALTER TABLE ', table_name, ' ADD PRIMARY KEY (', column_name, ');') FROM information_schema.columns WHERE table_schema = 'public' AND (CONCAT(table_name, 'id')=column_name OR column_name IN ('aoid', 'houseid', 'roomid', 'steadid', 'rmtypeid', 'fltypeid', 'housestid', 'kod_t_st', 'ndtypeid')) AND table_name IN ({string.Join(",", tableNames.Select(x => $"'{x}'"))})",
-                $"SELECT CONCAT('CREATE INDEX ON ', table_name, ' (', column_name, ');') FROM information_schema.columns WHERE table_schema = 'public' AND (column_name like '%guid' OR column_name like '%status' or column_name in ('previd', 'nextid', 'normdoc', 'shortname', 'normdocid', 'docimgid')) AND table_name IN ({string.Join(",", tableNames.Select(x => $"'{x}'"))})"
+                $"SELECT CONCAT('CREATE INDEX ON ', table_name, ' (', column_name, ');') FROM information_schema.columns WHERE table_schema = 'public' AND (column_name like '%guid' OR column_name like '%status' or column_name in ('previd', 'nextid', 'normdoc', 'shortname', 'normdocid', 'docimgid', 'record_number')) AND table_name IN ({string.Join(",", tableNames.Select(x => $"'{x}'"))})"
             };
 
             ExecuteCommandsOfCommands(sqls, conn);
