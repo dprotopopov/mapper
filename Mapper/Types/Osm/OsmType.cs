@@ -1,6 +1,6 @@
 ﻿using NpgsqlTypes;
 
-namespace Mapper.Services.Api
+namespace Mapper.Types.Osm
 {
     public enum OsmType
     {

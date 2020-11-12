@@ -1,6 +1,7 @@
 ﻿using System;
 using Mapper.Services.Api;
 using Mapper.Services.Upload;
+using Mapper.Types.Osm;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;

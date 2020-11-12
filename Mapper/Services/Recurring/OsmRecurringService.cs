@@ -7,7 +7,7 @@ using OsmSharp;
 
 namespace Mapper.Services.Api
 {
-    public class OsmApiService
+    public class OsmRecurringService
     {
         private readonly IConfiguration _configuration;
 
@@ -51,7 +51,7 @@ namespace Mapper.Services.Api
         FROM way
         WHERE id=@p";
 
-        public OsmApiService(IConfiguration configuration)
+        public OsmRecurringService(IConfiguration configuration)
         {
             _configuration = configuration;
         }

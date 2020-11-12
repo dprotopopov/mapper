@@ -1,6 +1,7 @@
 ﻿CREATE EXTENSION IF NOT EXISTS hstore;
-CREATE SEQUENCE IF NOT EXISTS record_number_seq;
+CREATE EXTENSION IF NOT EXISTS postgis;
 
+DROP TABLE IF EXISTS service_history;
 DROP TABLE IF EXISTS place;
 DROP TABLE IF EXISTS node;
 DROP TABLE IF EXISTS way;
@@ -11,13 +12,26 @@ DROP TABLE IF EXISTS temp_relation;
 
 DROP TYPE IF EXISTS relation_member;
 DROP TYPE IF EXISTS osm_type;
+DROP TYPE IF EXISTS service_type;
+
+DROP SEQUENCE IF EXISTS record_number_seq;
+
+CREATE SEQUENCE record_number_seq;
 
 CREATE TYPE osm_type AS ENUM ('node', 'way', 'relation');
+CREATE TYPE service_type AS ENUM ('node', 'way', 'relation', 'place');
+
+CREATE TABLE service_history(
+	type service_type PRIMARY KEY,
+	last_record_number BIGINT
+);
 
 CREATE TABLE place (
+	id BIGSERIAL PRIMARY KEY,
 	osm_id BIGINT, 
 	osm_type osm_type,
 	tags hstore,
+	location GEOGRAPHY,
 	record_number BIGINT DEFAULT nextval('record_number_seq')
 );
 
